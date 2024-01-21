@@ -1,8 +1,9 @@
 #!/usr/bin/python3
+"""solution for lockboxes"""
 
 def canUnlockAll(boxes):
-    # method that determines if all the boxes can be opened.
-    
+    """method that determines if all the boxes can be opened."""
+
     n = len(boxes)
     opened = [0]
 
