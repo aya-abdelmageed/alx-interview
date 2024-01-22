@@ -8,7 +8,7 @@ def minOperations(n):
     next = 'H'
     body = 'H'
     op = 0
-    while (len(body) < n):
+    while (len(body) < int(n)):
         if n % len(body) == 0:
             op += 2
             next = body
