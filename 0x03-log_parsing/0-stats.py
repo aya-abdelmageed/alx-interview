@@ -1,46 +1,45 @@
 #!/usr/bin/python3
-"""This script reads lines from stdin in this format
-<IP Address> - [<date>] "GET /projects/260 HTTP/1.1" <status code> <file size>
-and after every 10 lines or keyboard interruption
-it prints File size: <total size>
-<status code>: <number> for every status code"""
-
-from sys import stdin
-import re
+"""This module read stdin and compute metrics"""
+import sys
 
 
-def valid_format(line):
-    """checks if the line have a valid format"""
-    pattern = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - ' \
-              r'\[([^\]]+)\] "GET \/projects\/260 HTTP\/1\.1" (\d{3}) (\d+)$'
-    match = re.match(pattern, line)
-    return bool(match)
+def print_stats(size, status_codes):
+    """Print accumulated metrics.
+
+    Args:
+        size (int): The accumulated read file size.
+        status_codes (dict): The accumulated count of status codes.
+    """
+    print("File size: {}".format(size))
+    for key in sorted(status_codes):
+        print("{}: {}".format(key, status_codes[key]))
 
 
+size = 0
+status_codes = {}
+valid_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
+count = 0
 try:
-    my_dict = {}
-    total_size = 0
-    for i, line in enumerate(stdin, start=1):
+    for line in sys.stdin:
+        if count == 10:
+            print_stats(size, status_codes)
+            count = 1
+        else:
+            count += 1
+        line = line.split()
         try:
-            line = line.strip()
-            if not valid_format(line):
-                continue
-            parts = line.split()
-            total_size += int(parts[-1])
-            if parts[-2] not in my_dict:
-                my_dict[parts[-2]] = 1
-            else:
-                my_dict[parts[-2]] += 1
-            my_dict = dict(sorted(my_dict.items()))
-        except Exception as err:
-            continue
-        if i % 10 == 0:
-            print("File size: {}".format(total_size))
-            for key, val in my_dict.items():
-                print("{}: {}".format(key, val))
-except Exception as err:
-    pass
-finally:
-    print("File size: {}".format(total_size))
-    for key, val in my_dict.items():
-        print("{}: {}".format(key, val))
+            size += int(line[-1])
+        except (IndexError, ValueError):
+            pass
+        try:
+            if line[-2] in valid_codes:
+                if status_codes.get(line[-2], -1) == -1:
+                    status_codes[line[-2]] = 1
+                else:
+                    status_codes[line[-2]] += 1
+        except IndexError:
+            pass
+    print_stats(size, status_codes)
+except KeyboardInterrupt:
+    print_stats(size, status_codes)
+    raise
