@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-0. Island Perimeter 
+0. Island Perimeter
 Defines island perimeter finding function.
 """
 
